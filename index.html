@@ -1079,33 +1079,47 @@
     }
 
     function exportPDF() {
-        if (obras.length === 0) {
-            mostrarToast('Não há obras para exportar.', 'error');
-            return;
-        }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape', 'mm', 'a4');
-        const colunas = ['ID', 'Tombo', 'Título', 'Compositor', 'Editora', 'Pasta', 'Grupo', 'Status'];
-        const linhas = obras.map(o => [
-            o.id,
-            o.tombo || '',
-            o.titulo || '',
-            o.compositor || '',
-            o.editora || '',
-            o.pasta || '',
-            o.grupo || '',
-            o.status === 'publico' ? 'Público' : 'Protegido'
-        ]);
-        doc.autoTable({
-            head: [colunas],
-            body: linhas,
-            styles: { fontSize: 6, cellPadding: 1.5 },
-            headStyles: { fillColor: [201, 168, 76] },
-            margin: { top: 10 }
-        });
-        doc.save('acervo_musical.pdf');
-        mostrarToast('PDF exportado com sucesso!', 'success');
+    // Obtém as obras atualmente filtradas (exibidas na tabela)
+    const dadosFiltrados = filtrarObras();
+    if (dadosFiltrados.length === 0) {
+        mostrarToast('Não há obras para exportar no filtro atual.', 'error');
+        return;
     }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape', 'mm', 'a4');
+    const colunas = ['ID', 'Tombo', 'Título', 'Compositor', 'Editora', 'Pasta', 'Grupo', 'Status'];
+    const linhas = dadosFiltrados.map(o => [
+        o.id,
+        o.tombo || '',
+        o.titulo || '',
+        o.compositor || '',
+        o.editora || '',
+        o.pasta || '',
+        o.grupo || '',
+        o.status === 'publico' ? 'Público' : 'Protegido'
+    ]);
+    doc.autoTable({
+        head: [colunas],
+        body: linhas,
+        styles: { fontSize: 6, cellPadding: 1.5 },
+        headStyles: { fillColor: [201, 168, 76] },
+        margin: { top: 10 }
+    });
+    // Nome do arquivo com o grupo filtrado, se aplicável
+    let nomeArquivo = 'acervo_musical';
+    if (currentFilter === 'grupo') {
+        const grupoBuscado = currentSearch.trim() || 'todos';
+        nomeArquivo += `_grupo_${grupoBuscado.replace(/\s+/g, '_')}`;
+    } else if (currentFilter === 'compositor') {
+        nomeArquivo += `_compositor_${currentSearch.trim().replace(/\s+/g, '_')}`;
+    } else if (currentFilter === 'editora') {
+        nomeArquivo += `_editora_${currentSearch.trim().replace(/\s+/g, '_')}`;
+    } else if (currentFilter === 'pasta') {
+        nomeArquivo += `_pasta_${currentSearch.trim().replace(/\s+/g, '_')}`;
+    }
+    doc.save(`${nomeArquivo}.pdf`);
+    mostrarToast(`PDF exportado com ${dadosFiltrados.length} obras!`, 'success');
+}
 
     // ============================================================
     //  RELÓGIO
