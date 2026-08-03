@@ -1,1 +1,1178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <title>Acervo · Escola Municipal de Música SP</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'><line x1='-8' y1='-8' x2='-8' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-8' y1='-8' x2='8' y2='-8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-8' y1='8' x2='8' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-4' y1='4' x2='4' y2='4' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='4' y1='-8' x2='4' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/></svg>" type="image/svg+xml" />
+    <style>
+        /* === RESET E BASE === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f1eb;
+            color: #2a2a28;
+            padding: 1rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container { max-width: 1300px; width: 100%; margin: 0 auto; }
 
+        /* === TELA DE LOGIN === */
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            width: 100%;
+        }
+        .login-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid #e0dcd4;
+            text-align: center;
+        }
+        .login-box .logo-icon { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+        .login-box h1 { font-size: 1.8rem; font-weight: 700; color: #2a2a28; }
+        .login-box p { color: #999; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .login-box label { display: block; text-align: left; font-weight: 500; font-size: 0.8rem; color: #555; margin-top: 1rem; }
+        .login-box input {
+            width: 100%;
+            padding: 0.7rem 0.8rem;
+            border: 1px solid #e0dcd4;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-top: 0.2rem;
+            background: #fff;
+            transition: border 0.2s;
+        }
+        .login-box input:focus {
+            outline: none;
+            border-color: #c9a84c;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+        }
+        .login-box .btn-login {
+            width: 100%;
+            padding: 0.7rem;
+            background: #c9a84c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+        .login-box .btn-login:hover { background: #b8973a; }
+        .login-error {
+            color: #c62828;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .login-box .footer-cred {
+            margin-top: 1.5rem;
+            font-size: 0.7rem;
+            color: #bbb;
+        }
+
+        /* === HEADER === */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e0dcd4;
+        }
+        .header-left { display: flex; align-items: center; gap: 0.75rem; }
+        .header-left .logo-icon { font-size: 2rem; }
+        .header-left h1 { font-size: 1.5rem; font-weight: 700; color: #2a2a28; }
+        .header-left small { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-top: -2px; }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .header-right .admin-name { font-size: 0.9rem; font-weight: 500; text-align: right; line-height: 1.2; }
+        .header-right .admin-name span { display: block; font-weight: 400; font-size: 0.7rem; color: #999; }
+        .top-clock {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #555;
+            background: #f5f1eb;
+            padding: 0.2rem 0.8rem;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        .btn-logout { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #c9a84c; padding: 0.3rem 0.6rem; border-radius: 8px; transition: background 0.2s; }
+        .btn-logout:hover { background: #f5f1eb; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e0dcd4;
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            transition: box-shadow 0.2s;
+        }
+        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .card .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #999; font-weight: 600; }
+        .card .value { font-size: 2rem; font-weight: 700; margin-top: 0.3rem; }
+        .card .value.gold { color: #c9a84c; }
+        .card .value.green { color: #2e7d32; }
+        .card .value.blue { color: #1a73e8; }
+        .card .value.purple { color: #7b1fa2; }
+
+        .search-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        .search-bar input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.6rem 1rem;
+            border: 1px solid #e0dcd4;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: #fff;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .search-bar input[type="text"]:focus {
+            border-color: #c9a84c;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+        }
+        .filter-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .filter-chip {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            border: 1px solid #e0dcd4;
+            background: #fff;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #2a2a28;
+        }
+        .filter-chip.active { background: #c9a84c; color: #fff; border-color: #c9a84c; }
+        .filter-chip:hover:not(.active) { background: #f5f1eb; }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: #c9a84c; color: #fff; }
+        .btn-primary:hover { background: #b8973a; }
+        .btn-outline { background: transparent; border: 1px solid #e0dcd4; color: #2a2a28; }
+        .btn-outline:hover { background: #f5f1eb; }
+        .btn-success { background: #2e7d32; color: #fff; }
+        .btn-success:hover { background: #1b5e20; }
+        .btn-danger { background: #c62828; color: #fff; }
+        .btn-danger:hover { background: #b71c1c; }
+        .btn-info { background: #1a73e8; color: #fff; }
+        .btn-info:hover { background: #1557b0; }
+        .btn-warning { background: #e67e22; color: #fff; }
+        .btn-warning:hover { background: #d35400; }
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .master-section {
+            background: #fff;
+            border: 1px solid #e0dcd4;
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .master-section .label { font-size: 0.8rem; font-weight: 600; color: #666; margin-right: 0.5rem; }
+        .master-section .btn { font-size: 0.75rem; padding: 0.3rem 0.8rem; }
+        .master-badge { background: #f5f1eb; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.65rem; color: #666; }
+
+        .table-wrapper {
+            background: #fff;
+            border: 1px solid #e0dcd4;
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        thead { background: #f5f1eb; }
+        th {
+            padding: 0.8rem 0.6rem;
+            text-align: left;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+            font-weight: 600;
+            border-bottom: 1px solid #e0dcd4;
+            white-space: nowrap;
+        }
+        td { padding: 0.6rem 0.6rem; border-bottom: 1px solid #f0ece6; vertical-align: middle; }
+        tr:hover td { background: #faf8f5; }
+        .td-actions { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+        .td-actions .btn { padding: 0.2rem 0.5rem; font-size: 0.75rem; }
+        .badge-public { background: #e8f5e9; color: #2e7d32; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.7rem; font-weight: 500; }
+        .badge-protected { background: #ffebee; color: #c62828; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.7rem; font-weight: 500; }
+        .badge-tombo { font-family: monospace; font-size: 0.75rem; color: #c9a84c; font-weight: 600; }
+        .text-ellipsis { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle; }
+        .row-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #c9a84c; }
+        .select-all-col { width: 40px; text-align: center; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            backdrop-filter: blur(4px);
+            padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            max-width: 640px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.8rem 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeInUp 0.25s ease;
+        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal h2 { font-size: 1.4rem; margin-bottom: 1.2rem; color: #2a2a28; display: flex; align-items: center; gap: 0.5rem; }
+        .modal .close-btn { margin-left: auto; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; transition: color 0.2s; }
+        .modal .close-btn:hover { color: #2a2a28; }
+        .modal label { display: block; font-weight: 500; font-size: 0.8rem; color: #555; margin-top: 0.8rem; }
+        .modal input, .modal select, .modal textarea {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #e0dcd4;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-top: 0.2rem;
+            background: #fff;
+            transition: border 0.2s;
+            font-family: inherit;
+        }
+        .modal input:focus, .modal select:focus, .modal textarea:focus {
+            outline: none;
+            border-color: #c9a84c;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+        }
+        .modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .modal .form-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end; }
+        .modal .form-actions .btn { padding: 0.6rem 1.5rem; }
+        .modal datalist { display: none; }
+
+        .qr-container { text-align: center; padding: 1rem 0; }
+        .qr-container canvas, .qr-container img { max-width: 200px; margin: 0 auto; }
+        .qr-info {
+            background: #f5f1eb;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .qr-info strong { color: #2a2a28; }
+        .qr-info .label { color: #888; font-weight: 500; }
+
+        .footer { text-align: center; font-size: 0.75rem; color: #999; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0dcd4; }
+        .footer-clock { font-family: monospace; margin-top: 0.3rem; color: #555; }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #2a2a28;
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            max-width: 400px;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .toast.error { background: #c62828; }
+        .toast.success { background: #2e7d32; }
+
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .gap-1 { gap: 0.5rem; }
+        .mt-1 { margin-top: 0.5rem; }
+        .text-center { text-align: center; }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+            .header-right { justify-content: space-between; flex-wrap: wrap; }
+            .top-clock { font-size: 0.75rem; padding: 0.15rem 0.5rem; }
+            .modal .form-row { grid-template-columns: 1fr; }
+            .dashboard { grid-template-columns: 1fr 1fr; }
+            .search-bar { flex-direction: column; }
+            .search-bar input[type="text"] { width: 100%; }
+            .action-bar { flex-direction: column; align-items: stretch; }
+            .td-actions { flex-wrap: wrap; }
+            .master-section { flex-direction: column; align-items: stretch; }
+        }
+        @media (max-width: 480px) {
+            .dashboard { grid-template-columns: 1fr; }
+            .modal { padding: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="login-wrapper">
+        <div class="login-box">
+            <span class="logo-icon">🎵</span>
+            <h1>Acervo Musical</h1>
+            <p>Escola Municipal de Música SP</p>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <label for="loginUser">Usuário</label>
+                <input type="text" id="loginUser" placeholder="admin" required />
+
+                <label for="loginPass">Senha</label>
+                <input type="password" id="loginPass" placeholder="••••••••" required />
+
+                <div id="loginError" class="login-error">Usuário ou senha inválidos.</div>
+                <button type="submit" class="btn-login">Entrar</button>
+            </form>
+            <div class="footer-cred">Credenciais: admin / admin123</div>
+        </div>
+    </div>
+
+    <!-- SISTEMA PRINCIPAL (protegido) -->
+    <div id="mainApp" class="container hidden">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <span class="logo-icon">🎵</span>
+                <div>
+                    <h1>Acervo</h1>
+                    <small>Escola Municipal de Música SP</small>
+                </div>
+            </div>
+            <div class="header-right">
+                <div id="topClock" class="top-clock"></div>
+                <div class="admin-name">
+                    Leandro J. Silva
+                    <span>Administrador</span>
+                </div>
+                <button class="btn-logout" title="Sair" onclick="logout()">⏻</button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section class="dashboard" id="dashboard">
+            <div class="card"><div class="label">Total de Obras</div><div class="value gold" id="totalWorks">0</div></div>
+            <div class="card"><div class="label">Domínio Público</div><div class="value green" id="publicWorks">0</div></div>
+            <div class="card"><div class="label">Compositores</div><div class="value blue" id="composerCount">0</div></div>
+            <div class="card"><div class="label">Grupos Ativos</div><div class="value purple" id="groupCount">0</div></div>
+        </section>
+
+        <!-- SEARCH & FILTERS -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Buscar por título, compositor, editora, grupo ou pasta..." oninput="applyFilters()" />
+            <div class="filter-group" id="filterGroup">
+                <button class="filter-chip active" data-filter="all" onclick="setFilter('all')">Todos</button>
+                <button class="filter-chip" data-filter="compositor" onclick="setFilter('compositor')">Compositor</button>
+                <button class="filter-chip" data-filter="editora" onclick="setFilter('editora')">Editora</button>
+                <button class="filter-chip" data-filter="grupo" onclick="setFilter('grupo')">Grupo</button>
+                <button class="filter-chip" data-filter="pasta" onclick="setFilter('pasta')">Pasta</button>
+                <button class="filter-chip" data-filter="publico" onclick="setFilter('publico')">✅ Domínio Público</button>
+                <button class="filter-chip" data-filter="protegido" onclick="setFilter('protegido')">🔒 Protegido</button>
+            </div>
+        </div>
+
+        <!-- ACTION BAR -->
+        <div class="action-bar">
+            <button class="btn btn-primary" onclick="openAddModal()">➕ Novo Material</button>
+            <button class="btn btn-danger" id="btnDeleteSelected" onclick="deleteSelected()" disabled>🗑️ Excluir Selecionados</button>
+            <button class="btn btn-success" onclick="importExcel()">📂 Importar Obras (Excel)</button>
+            <button class="btn btn-info" onclick="exportExcel()">📊 Exportar Excel</button>
+            <button class="btn btn-warning" onclick="exportPDF()">📄 Exportar PDF</button>
+        </div>
+
+        <!-- MASTER DATA IMPORT -->
+        <div class="master-section">
+            <span class="label">📋 Importar Listas Mestras:</span>
+            <button class="btn btn-outline btn-sm" onclick="importMasterList('compositores')">🎼 Compositores</button>
+            <button class="btn btn-outline btn-sm" onclick="importMasterList('editoras')">🏢 Editoras</button>
+            <button class="btn btn-outline btn-sm" onclick="importMasterList('grupos')">🎭 Grupos</button>
+            <button class="btn btn-outline btn-sm" onclick="importMasterList('pastas')">📂 Pastas</button>
+            <span id="masterCounts" style="font-size:0.7rem;color:#999;margin-left:auto;"></span>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="select-all-col"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()" /></th>
+                        <th>ID</th>
+                        <th>Tombo</th>
+                        <th>Título</th>
+                        <th>Compositor</th>
+                        <th>Pasta</th>
+                        <th>Editora</th>
+                        <th>Grupo</th>
+                        <th>Status ECAD</th>
+                        <th style="min-width:120px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div style="padding:0.6rem 1rem; background:#f5f1eb; border-radius:0 0 12px 12px; border:1px solid #e0dcd4; border-top:none; font-size:0.8rem; color:#999; display:flex; justify-content:space-between; flex-wrap:wrap;">
+            <span id="resultCount">0 resultados</span>
+            <span id="selectedCount">0 selecionados</span>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p><i>Desenvolvido por Leandro J. Silva</i></p>
+            <div class="footer-clock" id="digitalClock"></div>
+        </footer>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<!-- MODAL: NOVO/EDITAR -->
+<div class="modal-overlay" id="formModal">
+    <div class="modal">
+        <h2 id="formModalTitle">Nova Obra <button class="close-btn" onclick="closeModal()">✕</button></h2>
+        <form id="obraForm" onsubmit="saveObra(event)">
+            <input type="hidden" id="editId" value="" />
+            <div class="form-row">
+                <div>
+                    <label>Tombo *</label>
+                    <input type="text" id="tombo" required placeholder="Ex: TST123456" />
+                </div>
+                <div>
+                    <label>Título *</label>
+                    <input type="text" id="titulo" required placeholder="Título da obra" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Compositor</label>
+                    <input type="text" id="compositor" list="datalistCompositores" placeholder="Nome do compositor" autocomplete="off" />
+                    <datalist id="datalistCompositores"></datalist>
+                </div>
+                <div>
+                    <label>Editora</label>
+                    <input type="text" id="editora" list="datalistEditoras" placeholder="Editora" autocomplete="off" />
+                    <datalist id="datalistEditoras"></datalist>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Pasta</label>
+                    <input type="text" id="pasta" list="datalistPastas" placeholder="Localização física" autocomplete="off" />
+                    <datalist id="datalistPastas"></datalist>
+                </div>
+                <div>
+                    <label>Grupo</label>
+                    <input type="text" id="grupo" list="datalistGrupos" placeholder="Grupo (ex: Banda Sinfônica)" autocomplete="off" />
+                    <datalist id="datalistGrupos"></datalist>
+                </div>
+            </div>
+            <div>
+                <label>Status ECAD</label>
+                <select id="status">
+                    <option value="publico">✅ Domínio Público</option>
+                    <option value="protegido">🔒 Protegido</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="formSubmitBtn">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: QR CODE -->
+<div class="modal-overlay" id="qrModal">
+    <div class="modal" style="max-width:450px;">
+        <h2>📱 Dados da Obra <button class="close-btn" onclick="closeQR()">✕</button></h2>
+        <div class="qr-container" id="qrContainer">
+            <img id="qrImage" src="" alt="QR Code" style="max-width:200px; display:none;" />
+            <div id="qrInfo" class="qr-info"></div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-outline" onclick="closeQR()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    // ============================================================
+    //  AUTENTICAÇÃO
+    // ============================================================
+    const SESSION_KEY = 'acervo_logged';
+
+    function isLoggedIn() {
+        return localStorage.getItem(SESSION_KEY) === 'true';
+    }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+        // Credenciais fixas (altere aqui se desejar)
+        if (user === 'Leandro' && pass === 'admin123') {
+            localStorage.setItem(SESSION_KEY, 'true');
+            document.getElementById('loginError').style.display = 'none';
+            showMainApp();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+
+    function logout() {
+        if (confirm('Deseja realmente sair?')) {
+            localStorage.removeItem(SESSION_KEY);
+            // Limpa os campos de login
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginError').style.display = 'none';
+            // Mostra a tela de login e esconde o app
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+    }
+
+    function showMainApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').classList.remove('hidden');
+        // Inicializa o sistema
+        if (typeof init === 'function') init();
+    }
+
+    // ============================================================
+    //  DADOS E INICIALIZAÇÃO
+    // ============================================================
+    const STORAGE_OBRAS = 'acervo_obras';
+    const STORAGE_MASTER = {
+        compositores: 'master_compositores',
+        editoras: 'master_editoras',
+        grupos: 'master_grupos',
+        pastas: 'master_pastas'
+    };
+
+    let obras = [];
+    let currentFilter = 'all';
+    let currentSearch = '';
+    let selectedIds = new Set();
+
+    function carregarDados() {
+        const stored = localStorage.getItem(STORAGE_OBRAS);
+        if (stored) {
+            try { obras = JSON.parse(stored); } catch(e) { obras = []; }
+        } else {
+            obras = [];
+            carregarExemplos();
+        }
+    }
+
+    function salvarDados() {
+        localStorage.setItem(STORAGE_OBRAS, JSON.stringify(obras));
+    }
+
+    function carregarExemplos() {
+        obras = [
+            { id: 1, tombo: 'TST1783518863012', titulo: 'Sinfonia em Dó — Op.21', compositor: 'Bach, Johann Sebastian', editora: 'Boosey & Hawkes', pasta: 'A0001', grupo: 'Banda Sinfônica', status: 'publico' },
+            { id: 2, tombo: 'TST1783518892331', titulo: 'Concerto para Violino em Ré — Op.35', compositor: 'Mozart, Wolfgang Amadeus', editora: 'Peters Edition', pasta: 'A0002', grupo: 'Coral Infanto Juvenil', status: 'publico' },
+            { id: 3, tombo: 'TST1783518918897001', titulo: 'Abertura 1812', compositor: 'Tchaikovsky, Piotr', editora: 'Edition Peters', pasta: 'B0012', grupo: 'Orquestra Sinfônica Jovem', status: 'publico' },
+            { id: 4, tombo: 'TST1785765450957001', titulo: 'Bolero', compositor: 'Ravel, Maurice', editora: 'Durand', pasta: 'C0034', grupo: 'Orquestra Sinfônica Infanto Juvenil', status: 'publico' },
+            { id: 5, tombo: 'TST1785765450957002', titulo: 'Peer Gynt Suíte nº1', compositor: 'Grieg, Edvard', editora: 'Peters', pasta: 'D0056', grupo: 'Banda Sinfônica', status: 'publico' },
+            { id: 6, tombo: 'TST1785765451437', titulo: 'O Trenzinho do Caipira', compositor: 'Villa-Lobos, Heitor', editora: 'Max Eschig', pasta: 'E0078', grupo: 'Orquestra Sinfônica Jovem', status: 'publico' },
+            { id: 7, tombo: 'TST1785765451454999', titulo: 'Suite Nordestina', compositor: 'Silva, José Ursicino', editora: 'Fermata', pasta: 'F0099', grupo: 'Banda Sinfônica', status: 'protegido' },
+            { id: 8, tombo: 'TST1785765451454998', titulo: 'Samba de uma Nota Só', compositor: 'Jobim, Tom', editora: 'Editora Musical', pasta: 'G0111', grupo: 'Coral Infanto Juvenil', status: 'protegido' },
+        ];
+        salvarDados();
+    }
+
+    // ============================================================
+    //  LISTAS MESTRAS
+    // ============================================================
+    function getMasterList(key) {
+        const stored = localStorage.getItem(STORAGE_MASTER[key]);
+        if (stored) {
+            try { return JSON.parse(stored); } catch(e) { return []; }
+        }
+        return [];
+    }
+
+    function setMasterList(key, data) {
+        localStorage.setItem(STORAGE_MASTER[key], JSON.stringify(data));
+    }
+
+    function atualizarContadoresMaster() {
+        const total = Object.values(STORAGE_MASTER).reduce((acc, key) => {
+            return acc + getMasterList(Object.keys(STORAGE_MASTER).find(k => STORAGE_MASTER[k] === key)).length;
+        }, 0);
+        document.getElementById('masterCounts').textContent = `Total: ${total} itens nas listas`;
+    }
+
+    function importMasterList(tipo) {
+        const displayNames = {
+            compositores: 'Compositores',
+            editoras: 'Editoras',
+            grupos: 'Grupos',
+            pastas: 'Pastas'
+        };
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls,.csv';
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const data = new Uint8Array(ev.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(firstSheet);
+                    const nomes = [];
+                    json.forEach(row => {
+                        const keys = Object.keys(row);
+                        let nome = '';
+                        for (const k of keys) {
+                            const val = String(row[k] || '').trim();
+                            if (val) {
+                                if (k.toLowerCase().includes('nome') || k.toLowerCase().includes('name') || keys.indexOf(k) === 0) {
+                                    nome = val;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!nome && keys.length > 0) {
+                            nome = String(row[keys[0]] || '').trim();
+                        }
+                        if (nome) nomes.push(nome);
+                    });
+                    if (nomes.length === 0) {
+                        mostrarToast('Nenhum nome encontrado no arquivo.', 'error');
+                        return;
+                    }
+                    const lista = [...new Set(nomes)].sort((a,b) => a.localeCompare(b));
+                    setMasterList(tipo, lista);
+                    atualizarContadoresMaster();
+                    atualizarDatalists();
+                    mostrarToast(`${lista.length} ${displayNames[tipo]} importados com sucesso!`, 'success');
+                } catch (err) {
+                    mostrarToast('Erro ao importar lista: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+        input.click();
+    }
+
+    function atualizarDatalists() {
+        const map = {
+            compositores: 'datalistCompositores',
+            editoras: 'datalistEditoras',
+            grupos: 'datalistGrupos',
+            pastas: 'datalistPastas'
+        };
+        for (const [key, datalistId] of Object.entries(map)) {
+            const lista = getMasterList(key);
+            const datalist = document.getElementById(datalistId);
+            if (datalist) {
+                datalist.innerHTML = lista.map(item => `<option value="${escapeHtml(item)}">`).join('');
+            }
+        }
+    }
+
+    // ============================================================
+    //  RENDERIZAÇÃO
+    // ============================================================
+    function renderizar() {
+        const filtradas = filtrarObras();
+        const tbody = document.getElementById('tableBody');
+        if (filtradas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#999;">Nenhuma obra encontrada.</td></tr>`;
+        } else {
+            tbody.innerHTML = filtradas.map(obra => {
+                const checked = selectedIds.has(obra.id) ? 'checked' : '';
+                return `
+                <tr>
+                    <td class="select-all-col"><input type="checkbox" class="row-checkbox" data-id="${obra.id}" ${checked} onchange="toggleRow(${obra.id})" /></td>
+                    <td>${obra.id}</td>
+                    <td><span class="badge-tombo">${obra.tombo || '—'}</span></td>
+                    <td><span class="text-ellipsis" title="${escapeHtml(obra.titulo)}">${escapeHtml(obra.titulo)}</span></td>
+                    <td>${obra.compositor ? escapeHtml(obra.compositor) : '—'}</td>
+                    <td>${obra.pasta || '—'}</td>
+                    <td>${obra.editora || '—'}</td>
+                    <td>${obra.grupo || '—'}</td>
+                    <td><span class="${obra.status === 'publico' ? 'badge-public' : 'badge-protected'}">${obra.status === 'publico' ? '✅ Público' : '🔒 Protegido'}</span></td>
+                    <td>
+                        <div class="td-actions">
+                            <button class="btn btn-outline btn-sm" onclick="gerarQR(${obra.id})" title="QR Code">📱</button>
+                            <button class="btn btn-info btn-sm" onclick="editarObra(${obra.id})" title="Editar">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="excluirObra(${obra.id})" title="Excluir">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        document.getElementById('resultCount').textContent = `${filtradas.length} resultados`;
+        document.getElementById('selectedCount').textContent = `${selectedIds.size} selecionados`;
+        document.getElementById('btnDeleteSelected').disabled = selectedIds.size === 0;
+
+        const total = obras.length;
+        const publicos = obras.filter(o => o.status === 'publico').length;
+        const compositores = new Set(obras.map(o => o.compositor).filter(c => c && c.trim() !== '')).size;
+        const grupos = new Set(obras.map(o => o.grupo).filter(g => g && g.trim() !== '')).size;
+        document.getElementById('totalWorks').textContent = total;
+        document.getElementById('publicWorks').textContent = publicos;
+        document.getElementById('composerCount').textContent = compositores;
+        document.getElementById('groupCount').textContent = grupos;
+
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+        document.getElementById('selectAllCheckbox').checked = allChecked;
+    }
+
+    function filtrarObras() {
+        let result = [...obras];
+        const search = currentSearch.toLowerCase().trim();
+
+        if (!search) {
+            if (currentFilter === 'publico') result = result.filter(o => o.status === 'publico');
+            else if (currentFilter === 'protegido') result = result.filter(o => o.status === 'protegido');
+            return result;
+        }
+
+        switch (currentFilter) {
+            case 'compositor':
+                result = result.filter(o => o.compositor && o.compositor.toLowerCase().includes(search));
+                break;
+            case 'editora':
+                result = result.filter(o => o.editora && o.editora.toLowerCase().includes(search));
+                break;
+            case 'grupo':
+                result = result.filter(o => o.grupo && o.grupo.toLowerCase().includes(search));
+                break;
+            case 'pasta':
+                result = result.filter(o => o.pasta && o.pasta.toLowerCase().includes(search));
+                break;
+            case 'publico':
+                result = result.filter(o => o.status === 'publico' && (
+                    (o.titulo && o.titulo.toLowerCase().includes(search)) ||
+                    (o.compositor && o.compositor.toLowerCase().includes(search)) ||
+                    (o.editora && o.editora.toLowerCase().includes(search)) ||
+                    (o.grupo && o.grupo.toLowerCase().includes(search)) ||
+                    (o.pasta && o.pasta.toLowerCase().includes(search))
+                ));
+                break;
+            case 'protegido':
+                result = result.filter(o => o.status === 'protegido' && (
+                    (o.titulo && o.titulo.toLowerCase().includes(search)) ||
+                    (o.compositor && o.compositor.toLowerCase().includes(search)) ||
+                    (o.editora && o.editora.toLowerCase().includes(search)) ||
+                    (o.grupo && o.grupo.toLowerCase().includes(search)) ||
+                    (o.pasta && o.pasta.toLowerCase().includes(search))
+                ));
+                break;
+            default:
+                result = result.filter(o =>
+                    (o.titulo && o.titulo.toLowerCase().includes(search)) ||
+                    (o.compositor && o.compositor.toLowerCase().includes(search)) ||
+                    (o.editora && o.editora.toLowerCase().includes(search)) ||
+                    (o.grupo && o.grupo.toLowerCase().includes(search)) ||
+                    (o.pasta && o.pasta.toLowerCase().includes(search))
+                );
+                break;
+        }
+        return result;
+    }
+
+    // ============================================================
+    //  FILTROS E BUSCA
+    // ============================================================
+    function applyFilters() {
+        currentSearch = document.getElementById('searchInput').value;
+        renderizar();
+    }
+
+    function setFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-chip').forEach(el => {
+            el.classList.toggle('active', el.dataset.filter === filter);
+        });
+        renderizar();
+    }
+
+    // ============================================================
+    //  SELEÇÃO EM LOTE
+    // ============================================================
+    function toggleRow(id) {
+        if (selectedIds.has(id)) selectedIds.delete(id);
+        else selectedIds.add(id);
+        renderizar();
+    }
+
+    function toggleSelectAll() {
+        const checked = document.getElementById('selectAllCheckbox').checked;
+        const filtradas = filtrarObras();
+        if (checked) {
+            filtradas.forEach(o => selectedIds.add(o.id));
+        } else {
+            filtradas.forEach(o => selectedIds.delete(o.id));
+        }
+        renderizar();
+    }
+
+    function deleteSelected() {
+        if (selectedIds.size === 0) return;
+        if (!confirm(`Tem certeza que deseja excluir ${selectedIds.size} obra(s) selecionada(s)?`)) return;
+        obras = obras.filter(o => !selectedIds.has(o.id));
+        selectedIds.clear();
+        salvarDados();
+        renderizar();
+        mostrarToast(`${obras.length} obra(s) excluídas.`, 'success');
+    }
+
+    // ============================================================
+    //  CRUD
+    // ============================================================
+    function openAddModal() {
+        document.getElementById('formModalTitle').textContent = 'Nova Obra';
+        document.getElementById('formSubmitBtn').textContent = 'Salvar';
+        document.getElementById('editId').value = '';
+        document.getElementById('obraForm').reset();
+        atualizarDatalists();
+        document.getElementById('formModal').classList.add('active');
+    }
+
+    function editarObra(id) {
+        const obra = obras.find(o => o.id === id);
+        if (!obra) return;
+        document.getElementById('formModalTitle').textContent = 'Editar Obra';
+        document.getElementById('formSubmitBtn').textContent = 'Atualizar';
+        document.getElementById('editId').value = id;
+        document.getElementById('tombo').value = obra.tombo || '';
+        document.getElementById('titulo').value = obra.titulo || '';
+        document.getElementById('compositor').value = obra.compositor || '';
+        document.getElementById('editora').value = obra.editora || '';
+        document.getElementById('pasta').value = obra.pasta || '';
+        document.getElementById('grupo').value = obra.grupo || '';
+        document.getElementById('status').value = obra.status || 'publico';
+        atualizarDatalists();
+        document.getElementById('formModal').classList.add('active');
+    }
+
+    function saveObra(e) {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+        const tombo = document.getElementById('tombo').value.trim();
+        const titulo = document.getElementById('titulo').value.trim();
+        const compositor = document.getElementById('compositor').value.trim();
+        const editora = document.getElementById('editora').value.trim();
+        const pasta = document.getElementById('pasta').value.trim();
+        const grupo = document.getElementById('grupo').value.trim();
+        const status = document.getElementById('status').value;
+
+        if (!titulo) {
+            mostrarToast('O título é obrigatório.', 'error');
+            return;
+        }
+
+        if (id) {
+            const index = obras.findIndex(o => o.id === parseInt(id));
+            if (index !== -1) {
+                obras[index] = { ...obras[index], tombo, titulo, compositor, editora, pasta, grupo, status };
+            }
+            mostrarToast('Obra atualizada com sucesso!', 'success');
+        } else {
+            const novoId = obras.length > 0 ? Math.max(...obras.map(o => o.id)) + 1 : 1;
+            obras.push({ id: novoId, tombo, titulo, compositor, editora, pasta, grupo, status });
+            mostrarToast('Obra adicionada com sucesso!', 'success');
+        }
+        salvarDados();
+        renderizar();
+        closeModal();
+    }
+
+    function excluirObra(id) {
+        if (!confirm('Tem certeza que deseja excluir esta obra?')) return;
+        obras = obras.filter(o => o.id !== id);
+        if (selectedIds.has(id)) selectedIds.delete(id);
+        salvarDados();
+        renderizar();
+        mostrarToast('Obra excluída.', 'success');
+    }
+
+    function closeModal() {
+        document.getElementById('formModal').classList.remove('active');
+    }
+
+    // ============================================================
+    //  QR CODE (com informações da obra)
+    // ============================================================
+    function gerarQR(id) {
+        const obra = obras.find(o => o.id === id);
+        if (!obra) return;
+
+        // Monta a string com os dados da obra
+        const info = `Pasta: ${obra.pasta || '—'}\nTombo: ${obra.tombo || '—'}\nTítulo: ${obra.titulo || '—'}\nCompositor: ${obra.compositor || '—'}`;
+
+        // Exibe as informações no modal
+        document.getElementById('qrInfo').innerHTML = `
+            <strong>📌 Dados da Obra</strong><br>
+            <span class="label">Pasta:</span> ${escapeHtml(obra.pasta || '—')}<br>
+            <span class="label">Tombo:</span> ${escapeHtml(obra.tombo || '—')}<br>
+            <span class="label">Título:</span> ${escapeHtml(obra.titulo || '—')}<br>
+            <span class="label">Compositor:</span> ${escapeHtml(obra.compositor || '—')}
+        `;
+
+        // Gera QR Code com a string de informações (usando API externa)
+        const qrImg = document.getElementById('qrImage');
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(info)}`;
+        qrImg.style.display = 'block';
+        document.getElementById('qrModal').classList.add('active');
+    }
+
+    function closeQR() {
+        document.getElementById('qrModal').classList.remove('active');
+        document.getElementById('qrImage').style.display = 'none';
+        document.getElementById('qrImage').src = '';
+    }
+
+    // ============================================================
+    //  IMPORTAÇÃO / EXPORTAÇÃO
+    // ============================================================
+    function importExcel() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls';
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const data = new Uint8Array(ev.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(firstSheet);
+                    let count = 0;
+                    json.forEach(row => {
+                        const titulo = (row['Título'] || row['titulo'] || '').toString().trim();
+                        if (!titulo) return;
+                        const tombo = (row['Tombo'] || row['tombo'] || '').toString().trim();
+                        const compositor = (row['Compositor'] || row['compositor'] || '').toString().trim();
+                        const editora = (row['Editora'] || row['editora'] || '').toString().trim();
+                        const pasta = (row['Pasta'] || row['pasta'] || '').toString().trim();
+                        const grupo = (row['Grupo'] || row['grupo'] || '').toString().trim();
+                        const status = (row['Status'] || row['status'] || 'publico').toString().trim().toLowerCase();
+                        const novoId = obras.length > 0 ? Math.max(...obras.map(o => o.id)) + 1 : 1;
+                        obras.push({
+                            id: novoId,
+                            tombo,
+                            titulo,
+                            compositor,
+                            editora,
+                            pasta,
+                            grupo,
+                            status: status === 'protegido' ? 'protegido' : 'publico'
+                        });
+                        count++;
+                    });
+                    salvarDados();
+                    renderizar();
+                    mostrarToast(`${count} obras importadas com sucesso!`, 'success');
+                } catch (err) {
+                    mostrarToast('Erro ao importar: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+        input.click();
+    }
+
+    function exportExcel() {
+        if (obras.length === 0) {
+            mostrarToast('Não há obras para exportar.', 'error');
+            return;
+        }
+        const data = obras.map(o => ({
+            'ID': o.id,
+            'Tombo': o.tombo || '',
+            'Título': o.titulo || '',
+            'Compositor': o.compositor || '',
+            'Editora': o.editora || '',
+            'Pasta': o.pasta || '',
+            'Grupo': o.grupo || '',
+            'Status': o.status === 'publico' ? 'Domínio Público' : 'Protegido'
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Acervo');
+        XLSX.writeFile(wb, 'acervo_musical.xlsx');
+        mostrarToast('Exportado com sucesso!', 'success');
+    }
+
+    function exportPDF() {
+        if (obras.length === 0) {
+            mostrarToast('Não há obras para exportar.', 'error');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+        const colunas = ['ID', 'Tombo', 'Título', 'Compositor', 'Editora', 'Pasta', 'Grupo', 'Status'];
+        const linhas = obras.map(o => [
+            o.id,
+            o.tombo || '',
+            o.titulo || '',
+            o.compositor || '',
+            o.editora || '',
+            o.pasta || '',
+            o.grupo || '',
+            o.status === 'publico' ? 'Público' : 'Protegido'
+        ]);
+        doc.autoTable({
+            head: [colunas],
+            body: linhas,
+            styles: { fontSize: 6, cellPadding: 1.5 },
+            headStyles: { fillColor: [201, 168, 76] },
+            margin: { top: 10 }
+        });
+        doc.save('acervo_musical.pdf');
+        mostrarToast('PDF exportado com sucesso!', 'success');
+    }
+
+    // ============================================================
+    //  RELÓGIO
+    // ============================================================
+    function iniciarRelogio() {
+        function atualizar() {
+            const now = new Date();
+            const data = now.toLocaleDateString('pt-BR');
+            const hora = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const seg = String(now.getSeconds()).padStart(2, '0');
+            const horaFormatada = `${hora}:${min}:${seg}`;
+            document.getElementById('digitalClock').textContent = `🕒 ${data} - ${horaFormatada}`;
+            document.getElementById('topClock').textContent = `${data} ${horaFormatada}`;
+        }
+        atualizar();
+        setInterval(atualizar, 1000);
+    }
+
+    // ============================================================
+    //  TOAST
+    // ============================================================
+    function mostrarToast(msg, tipo = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.className = 'toast show ' + tipo;
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3500);
+    }
+
+    // ============================================================
+    //  UTILITÁRIOS
+    // ============================================================
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ============================================================
+    //  INICIALIZAÇÃO
+    // ============================================================
+    function init() {
+        if (!isLoggedIn()) {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').classList.add('hidden');
+            return;
+        }
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').classList.remove('hidden');
+        carregarDados();
+        renderizar();
+        iniciarRelogio();
+        atualizarContadoresMaster();
+        atualizarDatalists();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    // Fechar modais clicando fora
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+    });
+</script>
+
+</body>
+</html>
