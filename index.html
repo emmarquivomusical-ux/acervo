@@ -1035,120 +1035,59 @@
     //  IMPORTAÇÃO / EXPORTAÇÃO
     // ============================================================
     async function importExcel() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.xlsx,.xls';
-        input.onchange = async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async function(ev) {
-                try {
-                    const data = new Uint8Array(ev.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(firstSheet);
-                    const obrasNovas = [];
-                    json.forEach(row => {
-                        const titulo = (row['Título'] || row['titulo'] || '').toString().trim();
-                        if (!titulo) return;
-                        const tombo = (row['Tombo'] || row['tombo'] || '').toString().trim();
-                        const compositor = (row['Compositor'] || row['compositor'] || '').toString().trim();
-                        const editora = (row['Editora'] || row['editora'] || '').toString().trim();
-                        const pasta = (row['Pasta'] || row['pasta'] || '').toString().trim();
-                        const grupo = (row['Grupo'] || row['grupo'] || '').toString().trim();
-                        const status = (row['Status'] || row['status'] || 'publico').toString().trim().toLowerCase();
-                        obrasNovas.push({
-                            tombo,
-                            titulo,
-                            compositor,
-                            editora,
-                            pasta,
-                            grupo,
-                            status: status === 'protegido' ? 'protegido' : 'publico'
-                        });
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls';
+    input.onchange = async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async function(ev) {
+            try {
+                const data = new Uint8Array(ev.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(firstSheet);
+                const obrasNovas = [];
+                json.forEach(row => {
+                    const titulo = (row['Título'] || row['titulo'] || '').toString().trim();
+                    if (!titulo) return;
+                    const tombo = (row['Tombo'] || row['tombo'] || '').toString().trim();
+                    const compositor = (row['Compositor'] || row['compositor'] || '').toString().trim();
+                    const editora = (row['Editora'] || row['editora'] || '').toString().trim();
+                    const pasta = (row['Pasta'] || row['pasta'] || '').toString().trim();
+                    const grupo = (row['Grupo'] || row['grupo'] || '').toString().trim();
+                    const status = (row['Status'] || row['status'] || 'publico').toString().trim().toLowerCase();
+                    obrasNovas.push({
+                        tombo,
+                        titulo,
+                        compositor,
+                        editora,
+                        pasta,
+                        grupo,
+                        status: status === 'protegido' ? 'protegido' : 'publico'
                     });
-                    if (obrasNovas.length === 0) {
-                        mostrarToast('Nenhuma obra válida encontrada.', 'error');
-                        return;
-                    }
-                    const { error } = await supabase
-                        .from('obras')
-                        .insert(obrasNovas);
-                    if (error) throw error;
-                    mostrarToast(`${obrasNovas.length} obras importadas com sucesso!`, 'success');
-                    await carregarDados();
-                } catch (err) {
-                    mostrarToast('Erro ao importar: ' + err.message, 'error');
+                });
+                if (obrasNovas.length === 0) {
+                    mostrarToast('Nenhuma obra válida encontrada.', 'error');
+                    return;
                 }
-            };
-            reader.readAsArrayBuffer(file);
+                // 🔥 AQUI: usando "supabase" (não "supabaseClient")
+                const { error } = await supabase
+                    .from('obras')
+                    .insert(obrasNovas);
+                if (error) throw error;
+                mostrarToast(`${obrasNovas.length} obras importadas com sucesso!`, 'success');
+                await carregarDados();
+            } catch (err) {
+                console.error('Erro ao importar:', err);
+                mostrarToast('Erro ao importar: ' + err.message, 'error');
+            }
         };
-        input.click();
-    }
-
-    function exportExcel() {
-        if (obras.length === 0) {
-            mostrarToast('Não há obras para exportar.', 'error');
-            return;
-        }
-        const data = obras.map(o => ({
-            'ID': o.id,
-            'Tombo': o.tombo || '',
-            'Título': o.titulo || '',
-            'Compositor': o.compositor || '',
-            'Editora': o.editora || '',
-            'Pasta': o.pasta || '',
-            'Grupo': o.grupo || '',
-            'Status': o.status === 'publico' ? 'Domínio Público' : 'Protegido'
-        }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Acervo');
-        XLSX.writeFile(wb, 'acervo_musical.xlsx');
-        mostrarToast('Exportado com sucesso!', 'success');
-    }
-
-    function exportPDF() {
-        const dadosFiltrados = filtrarObras();
-        if (dadosFiltrados.length === 0) {
-            mostrarToast('Não há obras para exportar no filtro atual.', 'error');
-            return;
-        }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape', 'mm', 'a4');
-        const colunas = ['ID', 'Tombo', 'Título', 'Compositor', 'Editora', 'Pasta', 'Grupo', 'Status'];
-        const linhas = dadosFiltrados.map(o => [
-            o.id,
-            o.tombo || '',
-            o.titulo || '',
-            o.compositor || '',
-            o.editora || '',
-            o.pasta || '',
-            o.grupo || '',
-            o.status === 'publico' ? 'Público' : 'Protegido'
-        ]);
-        doc.autoTable({
-            head: [colunas],
-            body: linhas,
-            styles: { fontSize: 6, cellPadding: 1.5 },
-            headStyles: { fillColor: [201, 168, 76] },
-            margin: { top: 10 }
-        });
-        let nomeArquivo = 'acervo_musical';
-        if (currentFilter === 'grupo') {
-            const grupoBuscado = currentSearch.trim() || 'todos';
-            nomeArquivo += `_grupo_${grupoBuscado.replace(/\s+/g, '_')}`;
-        } else if (currentFilter === 'compositor') {
-            nomeArquivo += `_compositor_${currentSearch.trim().replace(/\s+/g, '_')}`;
-        } else if (currentFilter === 'editora') {
-            nomeArquivo += `_editora_${currentSearch.trim().replace(/\s+/g, '_')}`;
-        } else if (currentFilter === 'pasta') {
-            nomeArquivo += `_pasta_${currentSearch.trim().replace(/\s+/g, '_')}`;
-        }
-        doc.save(`${nomeArquivo}.pdf`);
-        mostrarToast(`PDF exportado com ${dadosFiltrados.length} obras!`, 'success');
-    }
+        reader.readAsArrayBuffer(file);
+    };
+    input.click();
+}
 
     // ============================================================
     //  RELÓGIO
