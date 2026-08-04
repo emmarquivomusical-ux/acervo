@@ -588,18 +588,19 @@
         return localStorage.getItem(SESSION_KEY) === 'true';
     }
 
-    function handleLogin(e) {
-        e.preventDefault();
-        const user = document.getElementById('loginUser').value.trim();
-        const pass = document.getElementById('loginPass').value.trim();
-        if (user === 'Leandro' && pass === 'admin123') {
-            localStorage.setItem(SESSION_KEY, 'true');
-            document.getElementById('loginError').style.display = 'none';
-            showMainApp();
-        } else {
-            document.getElementById('loginError').style.display = 'block';
-        }
+   function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    // Credenciais: admin / admin123
+    if (user === 'admin' && pass === 'admin123') {
+        localStorage.setItem(SESSION_KEY, 'true');
+        document.getElementById('loginError').style.display = 'none';
+        showMainApp();
+    } else {
+        document.getElementById('loginError').style.display = 'block';
     }
+}
 
     function logout() {
         if (confirm('Deseja realmente sair?')) {
