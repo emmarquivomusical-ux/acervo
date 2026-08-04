@@ -1207,14 +1207,23 @@
         atualizarDatalists();
     }
 
-    document.addEventListener('DOMContentLoaded', init);
-
-    // Fechar modais clicando fora
-    document.querySelectorAll('.modal-overlay').forEach(el => {
-        el.addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('active');
+    document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            if (user === 'admin' && pass === 'admin123') {
+                localStorage.setItem('acervo_logged', 'true');
+                document.getElementById('loginError').style.display = 'none';
+                showMainApp();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
         });
-    });
+    }
+});
 </script>
 
 </body>
