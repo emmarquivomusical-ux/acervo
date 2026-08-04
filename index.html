@@ -587,13 +587,12 @@
         return localStorage.getItem(SESSION_KEY) === 'true';
     }
 
-   function handleLogin(e) {
+  function handleLogin(e) {
     e.preventDefault();
     const user = document.getElementById('loginUser').value.trim();
     const pass = document.getElementById('loginPass').value.trim();
-    // Credenciais: admin / admin123
     if (user === 'admin' && pass === 'admin123') {
-        localStorage.setItem(SESSION_KEY, 'true');
+        localStorage.setItem('acervo_logged', 'true');
         document.getElementById('loginError').style.display = 'none';
         showMainApp();
     } else {
