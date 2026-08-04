@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <title>Acervo · Escola Municipal de Música SP</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'><line x1='-8' y1='-8' x2='-8' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-8' y1='-8' x2='8' y2='-8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-8' y1='8' x2='8' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-4' y1='4' x2='4' y2='4' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='4' y1='-8' x2='4' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/></svg>" type="image/svg+xml" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'><line x1='-8' y1='-8' x2='-8' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-8' y1='-8' x2='8' y2='-8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-8' y1='8' x2='8' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-4' y1='4' x2='4' y2='4' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='4' y1='-8' x2='4' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/></svg>" type="image/svg+xml" />
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         /* === RESET E BASE === */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -567,6 +571,15 @@
 
 <script>
     // ============================================================
+    //  SUPABASE CONFIG
+    // ============================================================
+    // 🔑 SUBSTITUA PELAS SUAS CREDENCIAIS (já preenchidas com suas chaves)
+    const SUPABASE_URL = 'https://oiwupsepgtvujjiljlk.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_1BBNHMLY4uVPPFRgJYxaGw_ZeiMminV';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ============================================================
     //  AUTENTICAÇÃO
     // ============================================================
     const SESSION_KEY = 'acervo_logged';
@@ -579,7 +592,6 @@
         e.preventDefault();
         const user = document.getElementById('loginUser').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
-        // Credenciais fixas (altere aqui se desejar)
         if (user === 'Leandro' && pass === 'admin123') {
             localStorage.setItem(SESSION_KEY, 'true');
             document.getElementById('loginError').style.display = 'none';
@@ -592,11 +604,9 @@
     function logout() {
         if (confirm('Deseja realmente sair?')) {
             localStorage.removeItem(SESSION_KEY);
-            // Limpa os campos de login
             document.getElementById('loginUser').value = '';
             document.getElementById('loginPass').value = '';
             document.getElementById('loginError').style.display = 'none';
-            // Mostra a tela de login e esconde o app
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('mainApp').classList.add('hidden');
         }
@@ -605,145 +615,119 @@
     function showMainApp() {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('mainApp').classList.remove('hidden');
-        // Inicializa o sistema
-        if (typeof init === 'function') init();
+        init();
     }
 
     // ============================================================
     //  DADOS E INICIALIZAÇÃO
     // ============================================================
-    const STORAGE_OBRAS = 'acervo_obras';
-    const STORAGE_MASTER = {
-        compositores: 'master_compositores',
-        editoras: 'master_editoras',
-        grupos: 'master_grupos',
-        pastas: 'master_pastas'
-    };
-
     let obras = [];
     let currentFilter = 'all';
     let currentSearch = '';
     let selectedIds = new Set();
 
-    function carregarDados() {
-        const stored = localStorage.getItem(STORAGE_OBRAS);
-        if (stored) {
-            try { obras = JSON.parse(stored); } catch(e) { obras = []; }
-        } else {
-            obras = [];
-            carregarExemplos();
+    // Carregar dados do Supabase
+    async function carregarDados() {
+        try {
+            const { data, error } = await supabase
+                .from('obras')
+                .select('*')
+                .order('id', { ascending: true });
+
+            if (error) throw error;
+            obras = data || [];
+            renderizar();
+            return data;
+        } catch (err) {
+            console.error('Erro ao carregar dados:', err);
+            mostrarToast('Erro ao carregar dados do servidor.', 'error');
+            return [];
         }
     }
 
-    function salvarDados() {
-        localStorage.setItem(STORAGE_OBRAS, JSON.stringify(obras));
-    }
+    // Salvar obra (nova ou edição)
+    async function saveObra(e) {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+        const tombo = document.getElementById('tombo').value.trim();
+        const titulo = document.getElementById('titulo').value.trim();
+        const compositor = document.getElementById('compositor').value.trim();
+        const editora = document.getElementById('editora').value.trim();
+        const pasta = document.getElementById('pasta').value.trim();
+        const grupo = document.getElementById('grupo').value.trim();
+        const status = document.getElementById('status').value;
 
-    function carregarExemplos() {
-        obras = [
-            { id: 1, tombo: 'TST1783518863012', titulo: 'Sinfonia em Dó — Op.21', compositor: 'Bach, Johann Sebastian', editora: 'Boosey & Hawkes', pasta: 'A0001', grupo: 'Banda Sinfônica', status: 'publico' },
-            { id: 2, tombo: 'TST1783518892331', titulo: 'Concerto para Violino em Ré — Op.35', compositor: 'Mozart, Wolfgang Amadeus', editora: 'Peters Edition', pasta: 'A0002', grupo: 'Coral Infanto Juvenil', status: 'publico' },
-            { id: 3, tombo: 'TST1783518918897001', titulo: 'Abertura 1812', compositor: 'Tchaikovsky, Piotr', editora: 'Edition Peters', pasta: 'B0012', grupo: 'Orquestra Sinfônica Jovem', status: 'publico' },
-            { id: 4, tombo: 'TST1785765450957001', titulo: 'Bolero', compositor: 'Ravel, Maurice', editora: 'Durand', pasta: 'C0034', grupo: 'Orquestra Sinfônica Infanto Juvenil', status: 'publico' },
-            { id: 5, tombo: 'TST1785765450957002', titulo: 'Peer Gynt Suíte nº1', compositor: 'Grieg, Edvard', editora: 'Peters', pasta: 'D0056', grupo: 'Banda Sinfônica', status: 'publico' },
-            { id: 6, tombo: 'TST1785765451437', titulo: 'O Trenzinho do Caipira', compositor: 'Villa-Lobos, Heitor', editora: 'Max Eschig', pasta: 'E0078', grupo: 'Orquestra Sinfônica Jovem', status: 'publico' },
-            { id: 7, tombo: 'TST1785765451454999', titulo: 'Suite Nordestina', compositor: 'Silva, José Ursicino', editora: 'Fermata', pasta: 'F0099', grupo: 'Banda Sinfônica', status: 'protegido' },
-            { id: 8, tombo: 'TST1785765451454998', titulo: 'Samba de uma Nota Só', compositor: 'Jobim, Tom', editora: 'Editora Musical', pasta: 'G0111', grupo: 'Coral Infanto Juvenil', status: 'protegido' },
-        ];
-        salvarDados();
-    }
-
-    // ============================================================
-    //  LISTAS MESTRAS
-    // ============================================================
-    function getMasterList(key) {
-        const stored = localStorage.getItem(STORAGE_MASTER[key]);
-        if (stored) {
-            try { return JSON.parse(stored); } catch(e) { return []; }
+        if (!titulo) {
+            mostrarToast('O título é obrigatório.', 'error');
+            return;
         }
-        return [];
-    }
 
-    function setMasterList(key, data) {
-        localStorage.setItem(STORAGE_MASTER[key], JSON.stringify(data));
-    }
+        const obraData = { tombo, titulo, compositor, editora, pasta, grupo, status };
 
-    function atualizarContadoresMaster() {
-        const total = Object.values(STORAGE_MASTER).reduce((acc, key) => {
-            return acc + getMasterList(Object.keys(STORAGE_MASTER).find(k => STORAGE_MASTER[k] === key)).length;
-        }, 0);
-        document.getElementById('masterCounts').textContent = `Total: ${total} itens nas listas`;
-    }
+        try {
+            if (id) {
+                // Editar
+                const { error } = await supabase
+                    .from('obras')
+                    .update(obraData)
+                    .eq('id', parseInt(id));
 
-    function importMasterList(tipo) {
-        const displayNames = {
-            compositores: 'Compositores',
-            editoras: 'Editoras',
-            grupos: 'Grupos',
-            pastas: 'Pastas'
-        };
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.xlsx,.xls,.csv';
-        input.onchange = function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                try {
-                    const data = new Uint8Array(ev.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(firstSheet);
-                    const nomes = [];
-                    json.forEach(row => {
-                        const keys = Object.keys(row);
-                        let nome = '';
-                        for (const k of keys) {
-                            const val = String(row[k] || '').trim();
-                            if (val) {
-                                if (k.toLowerCase().includes('nome') || k.toLowerCase().includes('name') || keys.indexOf(k) === 0) {
-                                    nome = val;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!nome && keys.length > 0) {
-                            nome = String(row[keys[0]] || '').trim();
-                        }
-                        if (nome) nomes.push(nome);
-                    });
-                    if (nomes.length === 0) {
-                        mostrarToast('Nenhum nome encontrado no arquivo.', 'error');
-                        return;
-                    }
-                    const lista = [...new Set(nomes)].sort((a,b) => a.localeCompare(b));
-                    setMasterList(tipo, lista);
-                    atualizarContadoresMaster();
-                    atualizarDatalists();
-                    mostrarToast(`${lista.length} ${displayNames[tipo]} importados com sucesso!`, 'success');
-                } catch (err) {
-                    mostrarToast('Erro ao importar lista: ' + err.message, 'error');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        };
-        input.click();
-    }
+                if (error) throw error;
+                mostrarToast('Obra atualizada com sucesso!', 'success');
+            } else {
+                // Nova
+                const { error } = await supabase
+                    .from('obras')
+                    .insert([{ ...obraData }]);
 
-    function atualizarDatalists() {
-        const map = {
-            compositores: 'datalistCompositores',
-            editoras: 'datalistEditoras',
-            grupos: 'datalistGrupos',
-            pastas: 'datalistPastas'
-        };
-        for (const [key, datalistId] of Object.entries(map)) {
-            const lista = getMasterList(key);
-            const datalist = document.getElementById(datalistId);
-            if (datalist) {
-                datalist.innerHTML = lista.map(item => `<option value="${escapeHtml(item)}">`).join('');
+                if (error) throw error;
+                mostrarToast('Obra adicionada com sucesso!', 'success');
             }
+            await carregarDados();
+            closeModal();
+        } catch (err) {
+            console.error('Erro ao salvar:', err);
+            mostrarToast('Erro: ' + err.message, 'error');
+        }
+    }
+
+    // Excluir uma obra
+    async function excluirObra(id) {
+        if (!confirm('Tem certeza que deseja excluir esta obra?')) return;
+        try {
+            const { error } = await supabase
+                .from('obras')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            mostrarToast('Obra excluída.', 'success');
+            await carregarDados();
+        } catch (err) {
+            console.error('Erro ao excluir:', err);
+            mostrarToast('Erro: ' + err.message, 'error');
+        }
+    }
+
+    // Excluir selecionados em lote
+    async function deleteSelected() {
+        if (selectedIds.size === 0) return;
+        if (!confirm(`Tem certeza que deseja excluir ${selectedIds.size} obra(s) selecionada(s)?`)) return;
+
+        const idsArray = Array.from(selectedIds);
+        try {
+            const { error } = await supabase
+                .from('obras')
+                .delete()
+                .in('id', idsArray);
+
+            if (error) throw error;
+            selectedIds.clear();
+            mostrarToast(`${idsArray.length} obra(s) excluídas.`, 'success');
+            await carregarDados();
+        } catch (err) {
+            console.error('Erro ao excluir em lote:', err);
+            mostrarToast('Erro: ' + err.message, 'error');
         }
     }
 
@@ -888,16 +872,6 @@
         renderizar();
     }
 
-    function deleteSelected() {
-        if (selectedIds.size === 0) return;
-        if (!confirm(`Tem certeza que deseja excluir ${selectedIds.size} obra(s) selecionada(s)?`)) return;
-        obras = obras.filter(o => !selectedIds.has(o.id));
-        selectedIds.clear();
-        salvarDados();
-        renderizar();
-        mostrarToast(`${obras.length} obra(s) excluídas.`, 'success');
-    }
-
     // ============================================================
     //  CRUD
     // ============================================================
@@ -927,62 +901,17 @@
         document.getElementById('formModal').classList.add('active');
     }
 
-    function saveObra(e) {
-        e.preventDefault();
-        const id = document.getElementById('editId').value;
-        const tombo = document.getElementById('tombo').value.trim();
-        const titulo = document.getElementById('titulo').value.trim();
-        const compositor = document.getElementById('compositor').value.trim();
-        const editora = document.getElementById('editora').value.trim();
-        const pasta = document.getElementById('pasta').value.trim();
-        const grupo = document.getElementById('grupo').value.trim();
-        const status = document.getElementById('status').value;
-
-        if (!titulo) {
-            mostrarToast('O título é obrigatório.', 'error');
-            return;
-        }
-
-        if (id) {
-            const index = obras.findIndex(o => o.id === parseInt(id));
-            if (index !== -1) {
-                obras[index] = { ...obras[index], tombo, titulo, compositor, editora, pasta, grupo, status };
-            }
-            mostrarToast('Obra atualizada com sucesso!', 'success');
-        } else {
-            const novoId = obras.length > 0 ? Math.max(...obras.map(o => o.id)) + 1 : 1;
-            obras.push({ id: novoId, tombo, titulo, compositor, editora, pasta, grupo, status });
-            mostrarToast('Obra adicionada com sucesso!', 'success');
-        }
-        salvarDados();
-        renderizar();
-        closeModal();
-    }
-
-    function excluirObra(id) {
-        if (!confirm('Tem certeza que deseja excluir esta obra?')) return;
-        obras = obras.filter(o => o.id !== id);
-        if (selectedIds.has(id)) selectedIds.delete(id);
-        salvarDados();
-        renderizar();
-        mostrarToast('Obra excluída.', 'success');
-    }
-
     function closeModal() {
         document.getElementById('formModal').classList.remove('active');
     }
 
     // ============================================================
-    //  QR CODE (com informações da obra)
+    //  QR CODE
     // ============================================================
     function gerarQR(id) {
         const obra = obras.find(o => o.id === id);
         if (!obra) return;
-
-        // Monta a string com os dados da obra
         const info = `Pasta: ${obra.pasta || '—'}\nTombo: ${obra.tombo || '—'}\nTítulo: ${obra.titulo || '—'}\nCompositor: ${obra.compositor || '—'}`;
-
-        // Exibe as informações no modal
         document.getElementById('qrInfo').innerHTML = `
             <strong>📌 Dados da Obra</strong><br>
             <span class="label">Pasta:</span> ${escapeHtml(obra.pasta || '—')}<br>
@@ -990,8 +919,6 @@
             <span class="label">Título:</span> ${escapeHtml(obra.titulo || '—')}<br>
             <span class="label">Compositor:</span> ${escapeHtml(obra.compositor || '—')}
         `;
-
-        // Gera QR Code com a string de informações (usando API externa)
         const qrImg = document.getElementById('qrImage');
         qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(info)}`;
         qrImg.style.display = 'block';
@@ -1005,12 +932,44 @@
     }
 
     // ============================================================
-    //  IMPORTAÇÃO / EXPORTAÇÃO
+    //  LISTAS MESTRAS
     // ============================================================
-    function importExcel() {
+    const STORAGE_MASTER = {
+        compositores: 'master_compositores',
+        editoras: 'master_editoras',
+        grupos: 'master_grupos',
+        pastas: 'master_pastas'
+    };
+
+    function getMasterList(key) {
+        const stored = localStorage.getItem(STORAGE_MASTER[key]);
+        if (stored) {
+            try { return JSON.parse(stored); } catch(e) { return []; }
+        }
+        return [];
+    }
+
+    function setMasterList(key, data) {
+        localStorage.setItem(STORAGE_MASTER[key], JSON.stringify(data));
+    }
+
+    function atualizarContadoresMaster() {
+        const total = Object.values(STORAGE_MASTER).reduce((acc, key) => {
+            return acc + getMasterList(Object.keys(STORAGE_MASTER).find(k => STORAGE_MASTER[k] === key)).length;
+        }, 0);
+        document.getElementById('masterCounts').textContent = `Total: ${total} itens nas listas`;
+    }
+
+    function importMasterList(tipo) {
+        const displayNames = {
+            compositores: 'Compositores',
+            editoras: 'Editoras',
+            grupos: 'Grupos',
+            pastas: 'Pastas'
+        };
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.xlsx,.xls';
+        input.accept = '.xlsx,.xls,.csv';
         input.onchange = function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1021,7 +980,76 @@
                     const workbook = XLSX.read(data, { type: 'array' });
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const json = XLSX.utils.sheet_to_json(firstSheet);
-                    let count = 0;
+                    const nomes = [];
+                    json.forEach(row => {
+                        const keys = Object.keys(row);
+                        let nome = '';
+                        for (const k of keys) {
+                            const val = String(row[k] || '').trim();
+                            if (val) {
+                                if (k.toLowerCase().includes('nome') || k.toLowerCase().includes('name') || keys.indexOf(k) === 0) {
+                                    nome = val;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!nome && keys.length > 0) {
+                            nome = String(row[keys[0]] || '').trim();
+                        }
+                        if (nome) nomes.push(nome);
+                    });
+                    if (nomes.length === 0) {
+                        mostrarToast('Nenhum nome encontrado no arquivo.', 'error');
+                        return;
+                    }
+                    const lista = [...new Set(nomes)].sort((a,b) => a.localeCompare(b));
+                    setMasterList(tipo, lista);
+                    atualizarContadoresMaster();
+                    atualizarDatalists();
+                    mostrarToast(`${lista.length} ${displayNames[tipo]} importados com sucesso!`, 'success');
+                } catch (err) {
+                    mostrarToast('Erro ao importar lista: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+        input.click();
+    }
+
+    function atualizarDatalists() {
+        const map = {
+            compositores: 'datalistCompositores',
+            editoras: 'datalistEditoras',
+            grupos: 'datalistGrupos',
+            pastas: 'datalistPastas'
+        };
+        for (const [key, datalistId] of Object.entries(map)) {
+            const lista = getMasterList(key);
+            const datalist = document.getElementById(datalistId);
+            if (datalist) {
+                datalist.innerHTML = lista.map(item => `<option value="${escapeHtml(item)}">`).join('');
+            }
+        }
+    }
+
+    // ============================================================
+    //  IMPORTAÇÃO / EXPORTAÇÃO
+    // ============================================================
+    async function importExcel() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls';
+        input.onchange = async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(ev) {
+                try {
+                    const data = new Uint8Array(ev.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(firstSheet);
+                    const obrasNovas = [];
                     json.forEach(row => {
                         const titulo = (row['Título'] || row['titulo'] || '').toString().trim();
                         if (!titulo) return;
@@ -1031,9 +1059,7 @@
                         const pasta = (row['Pasta'] || row['pasta'] || '').toString().trim();
                         const grupo = (row['Grupo'] || row['grupo'] || '').toString().trim();
                         const status = (row['Status'] || row['status'] || 'publico').toString().trim().toLowerCase();
-                        const novoId = obras.length > 0 ? Math.max(...obras.map(o => o.id)) + 1 : 1;
-                        obras.push({
-                            id: novoId,
+                        obrasNovas.push({
                             tombo,
                             titulo,
                             compositor,
@@ -1042,11 +1068,17 @@
                             grupo,
                             status: status === 'protegido' ? 'protegido' : 'publico'
                         });
-                        count++;
                     });
-                    salvarDados();
-                    renderizar();
-                    mostrarToast(`${count} obras importadas com sucesso!`, 'success');
+                    if (obrasNovas.length === 0) {
+                        mostrarToast('Nenhuma obra válida encontrada.', 'error');
+                        return;
+                    }
+                    const { error } = await supabase
+                        .from('obras')
+                        .insert(obrasNovas);
+                    if (error) throw error;
+                    mostrarToast(`${obrasNovas.length} obras importadas com sucesso!`, 'success');
+                    await carregarDados();
                 } catch (err) {
                     mostrarToast('Erro ao importar: ' + err.message, 'error');
                 }
@@ -1079,47 +1111,45 @@
     }
 
     function exportPDF() {
-    // Obtém as obras atualmente filtradas (exibidas na tabela)
-    const dadosFiltrados = filtrarObras();
-    if (dadosFiltrados.length === 0) {
-        mostrarToast('Não há obras para exportar no filtro atual.', 'error');
-        return;
+        const dadosFiltrados = filtrarObras();
+        if (dadosFiltrados.length === 0) {
+            mostrarToast('Não há obras para exportar no filtro atual.', 'error');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+        const colunas = ['ID', 'Tombo', 'Título', 'Compositor', 'Editora', 'Pasta', 'Grupo', 'Status'];
+        const linhas = dadosFiltrados.map(o => [
+            o.id,
+            o.tombo || '',
+            o.titulo || '',
+            o.compositor || '',
+            o.editora || '',
+            o.pasta || '',
+            o.grupo || '',
+            o.status === 'publico' ? 'Público' : 'Protegido'
+        ]);
+        doc.autoTable({
+            head: [colunas],
+            body: linhas,
+            styles: { fontSize: 6, cellPadding: 1.5 },
+            headStyles: { fillColor: [201, 168, 76] },
+            margin: { top: 10 }
+        });
+        let nomeArquivo = 'acervo_musical';
+        if (currentFilter === 'grupo') {
+            const grupoBuscado = currentSearch.trim() || 'todos';
+            nomeArquivo += `_grupo_${grupoBuscado.replace(/\s+/g, '_')}`;
+        } else if (currentFilter === 'compositor') {
+            nomeArquivo += `_compositor_${currentSearch.trim().replace(/\s+/g, '_')}`;
+        } else if (currentFilter === 'editora') {
+            nomeArquivo += `_editora_${currentSearch.trim().replace(/\s+/g, '_')}`;
+        } else if (currentFilter === 'pasta') {
+            nomeArquivo += `_pasta_${currentSearch.trim().replace(/\s+/g, '_')}`;
+        }
+        doc.save(`${nomeArquivo}.pdf`);
+        mostrarToast(`PDF exportado com ${dadosFiltrados.length} obras!`, 'success');
     }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('landscape', 'mm', 'a4');
-    const colunas = ['ID', 'Tombo', 'Título', 'Compositor', 'Editora', 'Pasta', 'Grupo', 'Status'];
-    const linhas = dadosFiltrados.map(o => [
-        o.id,
-        o.tombo || '',
-        o.titulo || '',
-        o.compositor || '',
-        o.editora || '',
-        o.pasta || '',
-        o.grupo || '',
-        o.status === 'publico' ? 'Público' : 'Protegido'
-    ]);
-    doc.autoTable({
-        head: [colunas],
-        body: linhas,
-        styles: { fontSize: 6, cellPadding: 1.5 },
-        headStyles: { fillColor: [201, 168, 76] },
-        margin: { top: 10 }
-    });
-    // Nome do arquivo com o grupo filtrado, se aplicável
-    let nomeArquivo = 'acervo_musical';
-    if (currentFilter === 'grupo') {
-        const grupoBuscado = currentSearch.trim() || 'todos';
-        nomeArquivo += `_grupo_${grupoBuscado.replace(/\s+/g, '_')}`;
-    } else if (currentFilter === 'compositor') {
-        nomeArquivo += `_compositor_${currentSearch.trim().replace(/\s+/g, '_')}`;
-    } else if (currentFilter === 'editora') {
-        nomeArquivo += `_editora_${currentSearch.trim().replace(/\s+/g, '_')}`;
-    } else if (currentFilter === 'pasta') {
-        nomeArquivo += `_pasta_${currentSearch.trim().replace(/\s+/g, '_')}`;
-    }
-    doc.save(`${nomeArquivo}.pdf`);
-    mostrarToast(`PDF exportado com ${dadosFiltrados.length} obras!`, 'success');
-}
 
     // ============================================================
     //  RELÓGIO
@@ -1163,7 +1193,7 @@
     // ============================================================
     //  INICIALIZAÇÃO
     // ============================================================
-    function init() {
+    async function init() {
         if (!isLoggedIn()) {
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('mainApp').classList.add('hidden');
@@ -1171,7 +1201,7 @@
         }
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('mainApp').classList.remove('hidden');
-        carregarDados();
+        await carregarDados();
         renderizar();
         iniciarRelogio();
         atualizarContadoresMaster();
