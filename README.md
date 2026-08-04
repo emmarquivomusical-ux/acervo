@@ -6,8 +6,8 @@
     <title>Acervo · Escola Municipal de Música SP</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'><line x1='-8' y1='-8' x2='-8' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-8' y1='-8' x2='8' y2='-8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-8' y1='8' x2='8' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='-4' y1='4' x2='4' y2='4' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/><line x1='4' y1='-8' x2='4' y2='8' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/></svg>" type="image/svg+xml" />
 
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- supabaseClient JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabaseClient/supabaseClient-js@2"></script>
 
     <style>
         /* === RESET E BASE === */
@@ -571,14 +571,13 @@
 
 <script>
     // ============================================================
-    //  SUPABASE CONFIG
+    //  supabaseClient CONFIG
     // ============================================================
     // 🔑 SUBSTITUA PELAS SUAS CREDENCIAIS (já preenchidas com suas chaves)
-    const SUPABASE_URL = 'https://oiwupsepgtvujjiljlk.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_1BBNHMLY4uVPPFRgJYxaGw_ZeiMminV';
+    const supabaseClient_URL = 'https://oiwupsepgtvujjiljlk.supabaseClient.co';
+    const supabaseClient_ANON_KEY = 'sb_publishable_1BBNHMLY4uVPPFRgJYxaGw_ZeiMminV';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+    const supabaseClientClient = window.supabaseClient.createClient(supabaseClient_URL, supabaseClient_ANON_KEY);
     // ============================================================
     //  AUTENTICAÇÃO
     // ============================================================
@@ -588,13 +587,12 @@
         return localStorage.getItem(SESSION_KEY) === 'true';
     }
 
-    function handleLogin(e) {
+  function handleLogin(e) {
     e.preventDefault();
     const user = document.getElementById('loginUser').value.trim();
     const pass = document.getElementById('loginPass').value.trim();
-    // Credenciais: admin / admin123
     if (user === 'admin' && pass === 'admin123') {
-        localStorage.setItem(SESSION_KEY, 'true');
+        localStorage.setItem('acervo_logged', 'true');
         document.getElementById('loginError').style.display = 'none';
         showMainApp();
     } else {
@@ -627,10 +625,10 @@
     let currentSearch = '';
     let selectedIds = new Set();
 
-    // Carregar dados do Supabase
+    // Carregar dados do supabaseClient
     async function carregarDados() {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('obras')
                 .select('*')
                 .order('id', { ascending: true });
@@ -668,7 +666,7 @@
         try {
             if (id) {
                 // Editar
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('obras')
                     .update(obraData)
                     .eq('id', parseInt(id));
@@ -677,7 +675,7 @@
                 mostrarToast('Obra atualizada com sucesso!', 'success');
             } else {
                 // Nova
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('obras')
                     .insert([{ ...obraData }]);
 
@@ -696,7 +694,7 @@
     async function excluirObra(id) {
         if (!confirm('Tem certeza que deseja excluir esta obra?')) return;
         try {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('obras')
                 .delete()
                 .eq('id', id);
@@ -717,7 +715,7 @@
 
         const idsArray = Array.from(selectedIds);
         try {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('obras')
                 .delete()
                 .in('id', idsArray);
@@ -1074,7 +1072,7 @@
                         mostrarToast('Nenhuma obra válida encontrada.', 'error');
                         return;
                     }
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('obras')
                         .insert(obrasNovas);
                     if (error) throw error;
