@@ -1072,7 +1072,7 @@
                         mostrarToast('Nenhuma obra válida encontrada.', 'error');
                         return;
                     }
-                    const { error } = await supabaseClient
+                    const { error } = await supabase
                         .from('obras')
                         .insert(obrasNovas);
                     if (error) throw error;
